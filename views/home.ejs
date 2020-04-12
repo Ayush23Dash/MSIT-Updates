@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>MSIT Services</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+
+
+    <div class="login-wrapper">
+    <div class="login-left">
+      <img src="http://res.cloudinary.com/dzqowkhxu/image/upload/v1513679279/bg-login_bxxfkf.png">
+      <div class="h1">Click Me</div>
+    </div>
+    <div class="login-right">
+      <div class="h2">Register Yourself</div>
+      <form class="" action="/" method="post">
+      <div class="form-group">
+        <input type="text" id="Email" placeholder="Email" name="email">
+        <label for="Email">Email</label>
+      </div>
+      <div class="button-area">
+
+        <button class="btn btn-primary" type="submit">Subscribe to MSIT Updates</button>
+      </div>
+</form>
+
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+     <script type="text/javascript">
+       var openLoginRight = document.querySelector('.h1');
+   var loginWrapper = document.querySelector('.login-wrapper');
+
+   openLoginRight.addEventListener('click', function(){
+     loginWrapper.classList.toggle('open');
+   });
+     </script>
+      <script src="https://use.fontawesome.com/576f6a076e.js"></script>
+  </body>
+</html>
