@@ -9,7 +9,7 @@ const $ = require("cheerio");
 const nodemailer = require("nodemailer");
 
 let app = express();
-app.set("view engine","ejs");
+app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({
   extended: true
@@ -20,23 +20,17 @@ mongoose.connect("mongodb://localhost:27017/emailDb", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
-
 const emailSchema = new mongoose.Schema({
-  email:String
+  email: String
 });
+const Email = new mongoose.model("Email", emailSchema);
 
-const Email = new mongoose.model("Email",emailSchema);
-// rp('http://www.msit.in/notices', (err,res,body) => {
-//   let $ = cheerio.load(body);
-//   let a = $('.tab-content');
-//   // console.log(a[0].children[0].next.children[0].parent.parent.children[1].children[1].children[0]);
-//   console.log(a[0].children[1].children[0].parent.children[1].children[1].children[0].data);
-//   console.log(a[0].children[1].children[0]);
-//
-// });
-var notices, noticesLinks, latestNews,emailArray=[];
+// VARIABLES USED THROUGHOUT
+let notices, noticesLinks, latestNews, emailArray = [],
+  latestNotice = [],
+  latestNoticeString, nLink;
 
-
+// NODEMAILER CONFIG
 var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -72,58 +66,66 @@ var transporter = nodemailer.createTransport({
 //   });
 
 // ROUTES
-  app.get("/",(req,res) => {
-    res.render("home");
-    // NOTICES SECTION
-    rp('http://www.msit.in/notices')
-      .then(function(html) {
-      notices = ($('.tab-content ul li ', html).text());
-    // console.log(notices);
-        $(".tab-content ul", html).find('a').map(function() {
-          noticesLinks = ("msit.in" + $(this).attr('href'));
-          // console.log(noticesLinks);
-        }
-      );
-      Email.find((err,dbArray)=>{
-        if(err){
+app.get("/", (req, res) => {
+  res.render("home");
+  // NOTICES SECTION
+  rp('http://www.msit.in/notices')
+    .then(function(html) {
+      notices = $('.tab-content ul li ', html).text();
+      // GRABBING THE LATEST NOTICE(present after 50 spaces)
+      for (let i = 50; i < 100; i++) {
+        latestNotice[i] = notices[i];
+      }
+      // CONVERTING THE ARRAY OF LATEST NOTICE INTO A STRING
+      latestNoticeString = latestNotice.join("");
+      // SCRAPING THE NOTICE'S LINK
+      noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
+
+      nLink = latestNoticeString + noticesLinks;
+      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+      Email.find((err, dbArray) => {
+        if (err) {
           console.log(err);
-        }else{
-          for(let i=0;i<dbArray.length;i++){
-          var mailOptions = {
-            from: 'ayushshanker23@gmail.com',
-            to: dbArray[i].email,
-            subject: 'MSIT Notices',
-            text: '                         NOTICES\n' + notices,
-          };
-          transporter.sendMail(mailOptions, function(error, info) {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log('Email sent: ' + info.response);
-            }
-          });
-        }
+        } else {
+          for (let i = 0; i < dbArray.length; i++) {
+            // NODEMAILER OPTIONS
+            var mailOptions = {
+              from: 'ayushshanker23@gmail.com',
+              to: dbArray[i].email,
+              subject: 'MSIT Latest Notice',
+              text: '           NOTICE\n' + nLink,
+            };
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                console.log('Email sent: ' + info.response);
+              }
+            });
+          }
         }
       });
-      })
-      .catch(function(err) {
-        console.log(err);
-      });
-      // NOTICES END
-  });
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
+  // NOTICES END
+});
 
 
-  app.post("/",(req,res) => {
-     email = req.body.email;
-     Email.insertMany({email:email},(err) => {
-       if(err){
-         console.log(err);
-       }else{
-         console.log("Email inserted into db");
-         res.render("success");
-       }
-     });
+app.post("/", (req, res) => {
+  email = req.body.email;
+  Email.insertMany({
+    email: email
+  }, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Email inserted into db");
+      res.render("success");
+    }
   });
-app.listen(3000,(req,res) => {
+});
+app.listen(3000, (req, res) => {
   console.log("Server is running on port 3000");
 });
