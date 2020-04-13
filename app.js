@@ -26,9 +26,13 @@ const emailSchema = new mongoose.Schema({
 const Email = new mongoose.model("Email", emailSchema);
 
 // VARIABLES USED THROUGHOUT
-let notices, noticesLinks, latestNews, emailArray = [],
+let notices, noticesLinks, news,newsLinks, emailArray = [],
   latestNotice = [],
-  latestNoticeString, nLink;
+  latestNews = [],
+  latestNoticeString,
+  latestNewsString,
+   nLink,
+   lLink;
 
 // NODEMAILER CONFIG
 var transporter = nodemailer.createTransport({
@@ -41,12 +45,11 @@ var transporter = nodemailer.createTransport({
 
 
 
-// LATEST NEWS SECTION
+
 // rp('http://www.msit.in/latest_news')
 //   .then(function(html) {
 //     //success!
-//     latestNews = ($('.tab-content li ', html).text());
-//     // console.log(latestNews);
+
 //     var mailOptions = {
 //       from: 'ayushshanker23@gmail.com',
 //       to: 'ayushshankar@rediffmail.com',
@@ -78,6 +81,7 @@ app.get("/", (req, res) => {
       }
       // CONVERTING THE ARRAY OF LATEST NOTICE INTO A STRING
       latestNoticeString = latestNotice.join("");
+      // console.log(latestNoticeString);
       // SCRAPING THE NOTICE'S LINK
       noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
@@ -110,8 +114,52 @@ app.get("/", (req, res) => {
       console.log(err);
     });
   // NOTICES END
-});
 
+// LATEST NEWS SECTION
+  rp('http://www.msit.in/latest_news')
+    .then(function(html) {
+      news = ($('.tab-content li ', html).text());
+      // GRABBING THE LATEST NOTICE(present after 50 spaces)
+      for (let i = 75; i < 150; i++) {
+        latestNews[i] = news[i];
+      }
+      // CONVERTING THE ARRAY OF LATEST NEWS INTO A STRING
+      latestNewsString = latestNews.join("");
+      // console.log(latestNewsString);
+      // SCRAPING THE NEWS' LINK
+      newsLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
+
+      lLink = latestNewsString + newsLinks;
+      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+      Email.find((err, dbArray) => {
+        if (err) {
+          console.log(err);
+        } else {
+          for (let i = 0; i < dbArray.length; i++) {
+            // NODEMAILER OPTIONS
+            var mailOptions = {
+              from: 'ayushshanker23@gmail.com',
+              to: dbArray[i].email,
+              subject: 'MSIT Latest News',
+              text: '           NEWS\n' + lLink,
+            };
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                console.log('Email sent: ' + info.response);
+              }
+            });
+          }
+        }
+      });
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
+    // NEWS END
+});
+// GET ROUTE END
 
 app.post("/", (req, res) => {
   email = req.body.email;
