@@ -15,6 +15,11 @@ To run this application locally,
 ```
 mongod
 ```
+<li>Install dependencies</li>
+
+```
+npm install
+```
 <li>Start the server</li>
 
 ```
