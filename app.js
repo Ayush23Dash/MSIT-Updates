@@ -16,7 +16,8 @@ app.use(bodyParser.urlencoded({
 }));
 
 // DEFINING THE DB
-mongoose.connect("mongodb://localhost:27017/emailDb", {
+
+mongoose.connect(process.env.DB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -116,7 +117,7 @@ rp('http://www.msit.in/notices')
 rp('http://www.msit.in/latest_news')
   .then(function(html) {
     news = ($('.tab-content li ', html).text());
-    // GRABBING THE LATEST NOTICE(present after 50 spaces)
+    // GRABBING THE LATEST NOTICE(present after 75 spaces)
     for (let i = 75; i < 150; i++) {
       latestNews[i] = news[i];
     }
@@ -155,7 +156,7 @@ rp('http://www.msit.in/latest_news')
     console.log(err);
   });
   // NEWS END
-  
+
 // ROUTES
 app.get("/", (req, res) => {
   res.render("home");
