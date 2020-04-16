@@ -10,11 +10,7 @@ http://www.msit.in/latest_news
 To run this application locally,
 <li>Clone this repo</li>
 <li>cd MSIT-Updates</li>
-<li>Spin up the mongo server</li>
 
-```
-mongod
-```
 <li>Install dependencies</li>
 
 ```
@@ -30,3 +26,4 @@ node app.js
 ```
 localhost:3000
 ```
+<i>The email data will be stored in my cluster made on cloud using Atlas</i>
