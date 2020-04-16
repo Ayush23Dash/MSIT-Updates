@@ -34,7 +34,13 @@ let notices, noticesLinks, news,newsLinks, emailArray = [],
   latestNewsString,
    nLink,
    lLink;
-
+   const restartProcess = () => {
+ spawn(process.argv[1], process.argv.slice(2), {
+   detached: true,
+   stdio: ['ignore', out, err]
+ }).unref();
+ process.exit();
+};
 // NODEMAILER CONFIG
 var transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -72,6 +78,7 @@ var transporter = nodemailer.createTransport({
 // NOTICES SECTION
 rp('http://www.msit.in/notices')
   .then(function(html) {
+    restartProcess();
     notices = $('.tab-content ul li ', html).text();
     // GRABBING THE LATEST NOTICE(present after 50 spaces)
     for (let i = 50; i < 100; i++) {
@@ -117,6 +124,7 @@ rp('http://www.msit.in/notices')
 rp('http://www.msit.in/latest_news')
   .then(function(html) {
     news = ($('.tab-content li ', html).text());
+
     // GRABBING THE LATEST NOTICE(present after 75 spaces)
     for (let i = 75; i < 150; i++) {
       latestNews[i] = news[i];
