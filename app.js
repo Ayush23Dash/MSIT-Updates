@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const rp = require("request-promise");
 const $ = require("cheerio");
 const nodemailer = require("nodemailer");
+const forever = require('forever-monitor');
 
 let app = express();
 app.set("view engine", "ejs");
@@ -27,66 +28,43 @@ const emailSchema = new mongoose.Schema({
 const Email = new mongoose.model("Email", emailSchema);
 
 // VARIABLES USED THROUGHOUT
-let notices, noticesLinks, news,newsLinks, emailArray = [],
+let notices, noticesLinks, news, newsLinks, emailArray = [],
   latestNotice = [],
   latestNews = [],
   latestNoticeString,
   latestNewsString,
-   nLink,
-   lLink;
-   const restartProcess = () => {
- spawn(process.argv[1], process.argv.slice(2), {
-   detached: true,
-   stdio: ['ignore', out, err]
- }).unref();
- process.exit();
-};
+  nLink,
+  lLink,
+  image,
+  noticesImageType,
+  newsImageType;
+
 // NODEMAILER CONFIG
 var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'ayushshanker23@gmail.com',
-    pass: process.env.APP_PASSWORD
+    pass: process.env.APP_PASS
   }
 });
 
 
-
-
-// rp('http://www.msit.in/latest_news')
-//   .then(function(html) {
-//     //success!
-
-//     var mailOptions = {
-//       from: 'ayushshanker23@gmail.com',
-//       to: 'ayushshankar@rediffmail.com',
-//       subject: 'MSIT Latest News',
-//       text: '                        LATEST NEWS\n' + latestNews,
-//     };
-//     transporter.sendMail(mailOptions, function(error, info){
-//       if (error) {
-//         console.log(error);
-//       } else {
-//         console.log('Email sent: ' + info.response);
-//       }
-//     });
-//   })
-//   .catch(function(err) {
-//     console.log(err);
-//   });
-
 // NOTICES SECTION
 rp('http://www.msit.in/notices')
   .then(function(html) {
-    restartProcess();
+    //GRABBING THE NEW GIF LINK
+    image = ($('.tab-content li img ', html).attr('src'));
+    noticesImageType = (typeof image);
+
     notices = $('.tab-content ul li ', html).text();
+
     // GRABBING THE LATEST NOTICE(present after 50 spaces)
     for (let i = 50; i < 100; i++) {
       latestNotice[i] = notices[i];
     }
     // CONVERTING THE ARRAY OF LATEST NOTICE INTO A STRING
     latestNoticeString = latestNotice.join("");
-    // console.log(latestNoticeString);
+
     // SCRAPING THE NOTICE'S LINK
     noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
@@ -96,21 +74,25 @@ rp('http://www.msit.in/notices')
       if (err) {
         console.log(err);
       } else {
-        for (let i = 0; i < dbArray.length; i++) {
-          // NODEMAILER OPTIONS
-          var mailOptions = {
-            from: 'ayushshanker23@gmail.com',
-            to: dbArray[i].email,
-            subject: 'MSIT Latest Notice',
-            text: '           NOTICE\n' + nLink,
-          };
-          transporter.sendMail(mailOptions, function(error, info) {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log('Email sent: ' + info.response);
-            }
-          });
+        //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE notice IS NEW
+        if (noticesImageType === 'string') {
+          //SEND EMAIL TO ALL REGISTERED USERS
+          for (let i = 0; i < dbArray.length; i++) {
+            // NODEMAILER OPTIONS
+            var mailOptions = {
+              from: 'ayushshanker23@gmail.com',
+              to: dbArray[i].email,
+              subject: 'MSIT Latest Notice',
+              text: '           NOTICE\n' + nLink,
+            };
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                console.log('Email sent: ' + info.response);
+              }
+            });
+          }
         }
       }
     });
@@ -123,15 +105,18 @@ rp('http://www.msit.in/notices')
 // LATEST NEWS SECTION
 rp('http://www.msit.in/latest_news')
   .then(function(html) {
-    news = ($('.tab-content li ', html).text());
+    //GRABBING THE NEW GIF LINK
+    image = ($('.tab-content li img ', html).attr('src'));
+    newsImageType = (typeof image);
 
-    // GRABBING THE LATEST NOTICE(present after 75 spaces)
+    news = $('.tab-content ul li ', html).text();
+    // GRABBING THE LATEST NEWS(present after 75 spaces)
     for (let i = 75; i < 150; i++) {
       latestNews[i] = news[i];
     }
     // CONVERTING THE ARRAY OF LATEST NEWS INTO A STRING
     latestNewsString = latestNews.join("");
-    // console.log(latestNewsString);
+
     // SCRAPING THE NEWS' LINK
     newsLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
@@ -141,21 +126,25 @@ rp('http://www.msit.in/latest_news')
       if (err) {
         console.log(err);
       } else {
-        for (let i = 0; i < dbArray.length; i++) {
-          // NODEMAILER OPTIONS
-          var mailOptions = {
-            from: 'ayushshanker23@gmail.com',
-            to: dbArray[i].email,
-            subject: 'MSIT Latest News',
-            text: '           NEWS\n' + lLink,
-          };
-          transporter.sendMail(mailOptions, function(error, info) {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log('Email sent: ' + info.response);
-            }
-          });
+        //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
+        if (newsImageType === 'string') {
+          //SEND EMAIL TO ALL REGISTERED USERS
+          for (let i = 0; i < dbArray.length; i++) {
+            // NODEMAILER OPTIONS
+            var mailOptions = {
+              from: 'ayushshanker23@gmail.com',
+              to: dbArray[i].email,
+              subject: 'MSIT Latest News',
+              text: '           NEWS\n' + lLink,
+            };
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                console.log('Email sent: ' + info.response);
+              }
+            });
+          }
         }
       }
     });
@@ -163,7 +152,7 @@ rp('http://www.msit.in/latest_news')
   .catch(function(err) {
     console.log(err);
   });
-  // NEWS END
+// NEWS END
 
 // ROUTES
 app.get("/", (req, res) => {
@@ -186,7 +175,6 @@ app.post("/", (req, res) => {
 // app.listen(process.env.PORT||3000, (req, res) => {
 //   console.log("Server is running on port 3000");
 // });
-app.listen(process.env.PORT || 3000,() => {
-console.log("Server started successfully");
-}
-);
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server started successfully");
+});
