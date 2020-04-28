@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const rp = require("request-promise");
 const $ = require("cheerio");
 const nodemailer = require("nodemailer");
-const forever = require('forever-monitor');
+
 
 let app = express();
 app.set("view engine", "ejs");
@@ -15,6 +15,7 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
 
 // DEFINING THE DB
 
@@ -56,46 +57,52 @@ rp('http://www.msit.in/notices')
     image = ($('.tab-content li img ', html).attr('src'));
     noticesImageType = (typeof image);
 
-    notices = $('.tab-content ul li ', html).text();
+    if (noticesImageType === 'string') {
+      //RESTART SERVER ONCE, IF WE HAVE A NEW notice
+      shut();
+      start();
+      
+      notices = $('.tab-content ul li ', html).text();
 
-    // GRABBING THE LATEST NOTICE(present after 50 spaces)
-    for (let i = 50; i < 100; i++) {
-      latestNotice[i] = notices[i];
-    }
-    // CONVERTING THE ARRAY OF LATEST NOTICE INTO A STRING
-    latestNoticeString = latestNotice.join("");
+      // GRABBING THE LATEST NOTICE(present after 50 spaces)
+      for (let i = 50; i < 100; i++) {
+        latestNotice[i] = notices[i];
+      }
+      // CONVERTING THE ARRAY OF LATEST NOTICE INTO A STRING
+      latestNoticeString = latestNotice.join("");
 
-    // SCRAPING THE NOTICE'S LINK
-    noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
+      // SCRAPING THE NOTICE'S LINK
+      noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
-    nLink = latestNoticeString + noticesLinks;
-    // SEARCHING DB FOR REGISTERED SUBSCRIBERS
-    Email.find((err, dbArray) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE notice IS NEW
-        if (noticesImageType === 'string') {
-          //SEND EMAIL TO ALL REGISTERED USERS
-          for (let i = 0; i < dbArray.length; i++) {
-            // NODEMAILER OPTIONS
-            var mailOptions = {
-              from: 'ayushshanker23@gmail.com',
-              to: dbArray[i].email,
-              subject: 'MSIT Latest Notice',
-              text: '           NOTICE\n' + nLink,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log('Email sent: ' + info.response);
-              }
-            });
+      nLink = latestNoticeString + noticesLinks;
+      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+      Email.find((err, dbArray) => {
+        if (err) {
+          console.log(err);
+        } else {
+          //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE notice IS NEW
+          if (noticesImageType === 'string') {
+            //SEND EMAIL TO ALL REGISTERED USERS
+            for (let i = 0; i < dbArray.length; i++) {
+              // NODEMAILER OPTIONS
+              var mailOptions = {
+                from: 'ayushshanker23@gmail.com',
+                to: dbArray[i].email,
+                subject: 'MSIT Latest Notice',
+                text: '           NOTICE\n' + nLink,
+              };
+              transporter.sendMail(mailOptions, function(error, info) {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+            }
           }
         }
-      }
-    });
+      });
+    }
   })
   .catch(function(err) {
     console.log(err);
@@ -109,45 +116,52 @@ rp('http://www.msit.in/latest_news')
     image = ($('.tab-content li img ', html).attr('src'));
     newsImageType = (typeof image);
 
-    news = $('.tab-content ul li ', html).text();
-    // GRABBING THE LATEST NEWS(present after 75 spaces)
-    for (let i = 75; i < 150; i++) {
-      latestNews[i] = news[i];
-    }
-    // CONVERTING THE ARRAY OF LATEST NEWS INTO A STRING
-    latestNewsString = latestNews.join("");
+    if (newsImageType === 'string') {
+      //RESTART SERVER ONCE, IF WE HAVE A NEW latest_news
+      shut();
+      start();
 
-    // SCRAPING THE NEWS' LINK
-    newsLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
+      news = $('.tab-content ul li ', html).text();
+      // GRABBING THE LATEST NEWS(present after 75 spaces)
+      for (let i = 75; i < 150; i++) {
+        latestNews[i] = news[i];
+      }
+      // CONVERTING THE ARRAY OF LATEST NEWS INTO A STRING
+      latestNewsString = latestNews.join("");
 
-    lLink = latestNewsString + newsLinks;
-    // SEARCHING DB FOR REGISTERED SUBSCRIBERS
-    Email.find((err, dbArray) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
-        if (newsImageType === 'string') {
-          //SEND EMAIL TO ALL REGISTERED USERS
-          for (let i = 0; i < dbArray.length; i++) {
-            // NODEMAILER OPTIONS
-            var mailOptions = {
-              from: 'ayushshanker23@gmail.com',
-              to: dbArray[i].email,
-              subject: 'MSIT Latest News',
-              text: '           NEWS\n' + lLink,
-            };
-            transporter.sendMail(mailOptions, function(error, info) {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log('Email sent: ' + info.response);
-              }
-            });
+      // SCRAPING THE NEWS' LINK
+      newsLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
+
+      lLink = latestNewsString + newsLinks;
+      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+      Email.find((err, dbArray) => {
+        if (err) {
+          console.log(err);
+        } else {
+          //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
+          if (newsImageType === 'string') {
+            //SEND EMAIL TO ALL REGISTERED USERS
+            for (let i = 0; i < dbArray.length; i++) {
+              // NODEMAILER OPTIONS
+              var mailOptions = {
+                from: 'ayushshanker23@gmail.com',
+                to: dbArray[i].email,
+                subject: 'MSIT Latest News',
+                text: '           NEWS\n' + lLink,
+              };
+              transporter.sendMail(mailOptions, function(error, info) {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+            }
           }
         }
-      }
-    });
+      });
+
+    }
   })
   .catch(function(err) {
     console.log(err);
@@ -172,9 +186,22 @@ app.post("/", (req, res) => {
     }
   });
 });
-// app.listen(process.env.PORT||3000, (req, res) => {
-//   console.log("Server is running on port 3000");
-// });
-app.listen(process.env.PORT || 3000, () => {
+
+const server = app.listen(process.env.PORT || 3000, () => {
   console.log("Server started successfully");
 });
+
+//FUNCTION TO CLOSE THE SERVER GRACEFULLY
+function shut() {
+  server.close(() => {
+    console.log("Server closed")
+  });
+}
+
+//FUNCTION TO RESTART THE SERVER
+function start() {
+  server.on('close', function() {
+    server.listen(3000);
+    console.log("Server restarted successfully");
+  });
+}
