@@ -59,9 +59,9 @@ rp('http://www.msit.in/notices')
 
     if (noticesImageType === 'string') {
       //RESTART SERVER ONCE, IF WE HAVE A NEW notice
-      shut();
-      start();
-      
+      // shut();
+      // start();
+
       notices = $('.tab-content ul li ', html).text();
 
       // GRABBING THE LATEST NOTICE(present after 50 spaces)
@@ -89,7 +89,7 @@ rp('http://www.msit.in/notices')
                 from: 'ayushshanker23@gmail.com',
                 to: dbArray[i].email,
                 subject: 'MSIT Latest Notice',
-                text: '           NOTICE\n' + nLink,
+                text: '           NOTICE\n' + nLink +'\n\nIt is highly recommended to check msit.in/notices for more information',
               };
               transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
@@ -118,12 +118,14 @@ rp('http://www.msit.in/latest_news')
 
     if (newsImageType === 'string') {
       //RESTART SERVER ONCE, IF WE HAVE A NEW latest_news
-      shut();
-      start();
+      // shut();
+      // start();
+      // process.exit();
+      // start();
 
       news = $('.tab-content ul li ', html).text();
       // GRABBING THE LATEST NEWS(present after 75 spaces)
-      for (let i = 75; i < 150; i++) {
+      for (let i = 75; i < 240; i++) {
         latestNews[i] = news[i];
       }
       // CONVERTING THE ARRAY OF LATEST NEWS INTO A STRING
@@ -140,6 +142,9 @@ rp('http://www.msit.in/latest_news')
         } else {
           //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
           if (newsImageType === 'string') {
+            // shut();
+            // start();
+            // console.log("in news");
             //SEND EMAIL TO ALL REGISTERED USERS
             for (let i = 0; i < dbArray.length; i++) {
               // NODEMAILER OPTIONS
@@ -147,7 +152,7 @@ rp('http://www.msit.in/latest_news')
                 from: 'ayushshanker23@gmail.com',
                 to: dbArray[i].email,
                 subject: 'MSIT Latest News',
-                text: '           NEWS\n' + lLink,
+                text: '           NEWS\n' + lLink +'\n\nIt is highly recommended to check msit.in/latest_news for more information',
               };
               transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
@@ -182,6 +187,8 @@ app.post("/", (req, res) => {
       console.log(err);
     } else {
       console.log("Email inserted into db");
+      // start();
+      // shut();
       res.render("success");
     }
   });
@@ -194,7 +201,7 @@ const server = app.listen(process.env.PORT || 3000, () => {
 //FUNCTION TO CLOSE THE SERVER GRACEFULLY
 function shut() {
   server.close(() => {
-    console.log("Server closed")
+    console.log("Server closed");
   });
 }
 
