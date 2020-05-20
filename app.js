@@ -120,7 +120,7 @@ rp('http://www.msit.in/latest_news')
       //RESTART SERVER ONCE, IF WE HAVE A NEW latest_news
       // shut();
       // start();
-      // process.exit();
+      process.exit();
       // start();
 
       news = $('.tab-content ul li ', html).text();
