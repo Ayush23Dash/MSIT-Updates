@@ -67,7 +67,15 @@ rp('http://www.msit.in/notices')
     //GRABBING THE NEW GIF LINK
     image = ($('.tab-content li img ', html).attr('src'));
     noticesImageType = (typeof image);
-
+    // NoticesModel.insertMany({
+    //   data: nLink
+    // }, (err) => {
+    //   if (err) {
+    //     console.log(err);
+    //   } else {
+    //     console.log("Notice inserted into db");
+    //   }
+    // });
     if (noticesImageType === 'string') {
       //RESTART SERVER ONCE, IF WE HAVE A NEW notice
       // shut();
@@ -86,33 +94,55 @@ rp('http://www.msit.in/notices')
       noticesLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
       nLink = latestNoticeString + noticesLinks;
-      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
-      Email.find((err, dbArray) => {
-        if (err) {
+
+      NoticesModel.find({},(err,results) => {
+        if(err){
           console.log(err);
-        } else {
-          //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE notice IS NEW
-          if (noticesImageType === 'string') {
-            //SEND EMAIL TO ALL REGISTERED USERS
-            for (let i = 0; i < dbArray.length; i++) {
-              // NODEMAILER OPTIONS
-              var mailOptions = {
-                from: 'ayushshanker23@gmail.com',
-                to: dbArray[i].email,
-                subject: 'MSIT Latest Notice',
-                text: '           NOTICE\n' + nLink +'\n\nIt is highly recommended to check msit.in/notices for more information',
-              };
-              transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                  console.log(error);
-                } else {
-                  console.log('Email sent: ' + info.response);
+        }else{
+          if(nLink === results[0].data){
+            console.log("Same Notice");
+          }else{
+            console.log("Different Notices");
+            NoticesModel.findByIdAndUpdate({_id:"5ee8eda672ca5b3c90b3d158"},{
+              data:nLink
+            },(err,result) => {
+              if(err){
+                console.log(err);
+              }else{
+                console.log("Notices Updated");
+              }
+            });
+            // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+            Email.find((err, dbArray) => {
+              if (err) {
+                console.log(err);
+              } else {
+                //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE notice IS NEW
+                if (noticesImageType === 'string') {
+                  //SEND EMAIL TO ALL REGISTERED USERS
+                  for (let i = 0; i < dbArray.length; i++) {
+                    // NODEMAILER OPTIONS
+                    var mailOptions = {
+                      from: 'ayushshanker23@gmail.com',
+                      to: dbArray[i].email,
+                      subject: 'MSIT Latest Notice',
+                      text: '           NOTICE\n' + nLink +'\n\nIt is highly recommended to check msit.in/notices for more information',
+                    };
+                    transporter.sendMail(mailOptions, function(error, info) {
+                      if (error) {
+                        console.log(error);
+                      } else {
+                        console.log('Email sent: ' + info.response);
+                      }
+                    });
+                  }
                 }
-              });
-            }
+              }
+            });
           }
         }
       });
+
     }
   })
   .catch(function(err) {
