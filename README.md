@@ -7,7 +7,9 @@ and
 ```
 http://www.msit.in/latest_news
 ```
-To run this application locally,
+This application uses cron jobs in order to overcome the sleep times of the Heroku dynos in its free version.
+
+<h1>To run this application locally</h1>
 <li>Clone this repo</li>
 <li>cd MSIT-Updates</li>
 
