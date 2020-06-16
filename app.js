@@ -26,7 +26,18 @@ mongoose.connect(process.env.DB_URL, {
 const emailSchema = new mongoose.Schema({
   email: String
 });
+
+const newsSchema = new mongoose.Schema({
+  data:String
+});
+
+const noticesSchema = new mongoose.Schema({
+  data:String
+});
+
 const Email = new mongoose.model("Email", emailSchema);
+const NewsModel = new mongoose.model("News",newsSchema);
+const NoticesModel = new mongoose.model("notices",noticesSchema);
 
 // VARIABLES USED THROUGHOUT
 let notices, noticesLinks, news, newsLinks, emailArray = [],
@@ -135,36 +146,67 @@ rp('http://www.msit.in/latest_news')
       newsLinks = ("http://www.msit.in" + $(".tab-content ul li a ", html).attr("href"));
 
       lLink = latestNewsString + newsLinks;
-      // SEARCHING DB FOR REGISTERED SUBSCRIBERS
-      Email.find((err, dbArray) => {
-        if (err) {
+      // NewsModel.insertMany({
+      //   data: lLink
+      // }, (err) => {
+      //   if (err) {
+      //     console.log(err);
+      //   } else {
+      //     console.log("News inserted into db");
+      //   }
+      // });
+      NewsModel.find({},(err,results) => {
+        if(err){
           console.log(err);
-        } else {
-          //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
-          if (newsImageType === 'string') {
-            // shut();
-            // start();
-            // console.log("in news");
-            //SEND EMAIL TO ALL REGISTERED USERS
-            for (let i = 0; i < dbArray.length; i++) {
-              // NODEMAILER OPTIONS
-              var mailOptions = {
-                from: 'ayushshanker23@gmail.com',
-                to: dbArray[i].email,
-                subject: 'MSIT Latest News',
-                text: '           NEWS\n' + lLink +'\n\nIt is highly recommended to check msit.in/latest_news for more information',
-              };
-              transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                  console.log(error);
-                } else {
-                  console.log('Email sent: ' + info.response);
+        }else{
+          if(lLink === results[0].data){
+            console.log("Same News");
+          }else{
+            console.log("Different News");
+            // UPDATE OLD NEWS WITH NEW NEWS
+            NewsModel.findByIdAndUpdate({_id:"5ee8d98bcfa33b2e142d466b"},{
+              data:lLink
+            },(err,result) => {
+              if(err){
+                console.log(err);
+              }else{
+                console.log("News Updated");
+              }
+            });
+            // SEARCHING DB FOR REGISTERED SUBSCRIBERS
+            Email.find((err, dbArray) => {
+              if (err) {
+                console.log(err);
+              } else {
+                //CHECK IF THE li TAG HAS A NEW GIF,I.E. THE latest_news IS NEW
+                if (newsImageType === 'string') {
+                  // shut();
+                  // start();
+                  // console.log("in news");
+                  //SEND EMAIL TO ALL REGISTERED USERS
+                  for (let i = 0; i < dbArray.length; i++) {
+                    // NODEMAILER OPTIONS
+                    var mailOptions = {
+                      from: 'ayushshanker23@gmail.com',
+                      to: dbArray[i].email,
+                      subject: 'MSIT Latest News',
+                      text: '           NEWS\n' + lLink +'\n\nIt is highly recommended to check msit.in/latest_news for more information',
+                    };
+                    transporter.sendMail(mailOptions, function(error, info) {
+                      if (error) {
+                        console.log(error);
+                      } else {
+                        console.log('Email sent: ' + info.response);
+                      }
+                    });
+                  }
                 }
-              });
-            }
+              }
+            });
           }
         }
       });
+
 
     }
   })
