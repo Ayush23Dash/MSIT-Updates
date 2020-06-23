@@ -10,6 +10,8 @@ http://www.msit.in/latest_news
 This application uses cron jobs in order to overcome the sleep times of the Heroku dynos in its free version.
 
 <h1>To run this application locally</h1>
+<h3>NOTE:You need to set up your own app password for gmail or any other email client(MUA) that you use and create a .env file in the root folder. You also need to set up your own MongoDB cluster and provide its URL in the aforementioned .env file</h3>
+<h5>The basic steps for setting it up locally are: </h5>
 <li>Clone this repo</li>
 <li>cd MSIT-Updates</li>
 
@@ -28,4 +30,4 @@ node app.js
 ```
 localhost:3000
 ```
-<i>The email data will be stored in my cluster made on cloud using Atlas</i>
+
