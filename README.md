@@ -8,6 +8,9 @@ and
 http://www.msit.in/latest_news
 ```
 This application uses cron jobs in order to overcome the sleep times of the Heroku dynos in its free version.
+```
+https://console.cron-job.org/
+```
 
 <h1>To run this application locally</h1>
 <h4>NOTE:You need to set up your own app password(APP_PASS) for gmail or any other email client(MUA) that you use and create a .env file in the root folder. You also need to set up your own MongoDB cluster and provide its URL(DB_URL) in the aforementioned .env file</h4>
